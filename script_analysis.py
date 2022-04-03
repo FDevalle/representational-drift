@@ -23,6 +23,7 @@ def double_exponential(t,tau1,a1,tau2,a2):
     return a1*np.exp(-t/tau1)+a2*np.exp(-t/tau2)
 def single_exponential(t,tau1,a1):
     return a1*np.exp(-t/tau1)
+#modificato per prova
 eng = matlab.engine.start_matlab()
 folder_names=["/home/federico/postdoc/hippocampus/simulations_paper/simulations_cluster_rhos_values/rhos_0_85/",
               "/home/federico/postdoc/hippocampus/simulations_paper/simulations_cluster_rhos_values/rhos_0_90/",

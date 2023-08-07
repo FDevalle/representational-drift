@@ -25,7 +25,7 @@ def main_network_simulations(BASE_DIR):
     frac_tun = 0.5
     frac_tun_ec = 0.
     cont_spars = 0.5  # ec3 sparseness
-    nlaps = 1  # number of laps on the track for each session
+    nlaps = 20  # number of laps on the track for each session
     ttot = 7.*nlaps*8*1000  # total simulation time
     length_ts = int(100*ttot/1000)
     Nff_act = int(ca3_spars*Nff)

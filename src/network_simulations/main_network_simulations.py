@@ -58,15 +58,18 @@ def main_network_simulations(BASE_DIR):
 
 if __name__ == "__main__":
     import os
+    # add root to sys.path
     parents = filter(lambda path: path.name == 'representational-drift',
                      pathlib.Path(__file__).absolute().parents
                      )
     BASE_DIR = next(parents)
     sys.path.append(str(BASE_DIR))
+    # compile fortran routine
     net_sim_exit = os.system(
         "f2py3 --debug-capi -c beta.f90 -m beta")
     print("fortan code compiled with exit code ", net_sim_exit)
     print("running simulation")
     start_time = time.time()
+    # run simulation
     main_network_simulations(str(BASE_DIR))
     print("simulation time: ", time.time()-start_time, ' seconds')

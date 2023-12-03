@@ -6,16 +6,19 @@ Created on Mon Aug 30 14:44:23 2021
 @author: federico
 """
 
-#import network_sim
+# import network_sim
 import sys
 import numpy as np
 import time
-#import matlab.engine
-#import fig_paper
+# import matlab.engine
+# import fig_paper
 import pathlib
 
 
 def main_network_simulations(BASE_DIR):
+    # wrapping function of network simulations. Most parameters are set here, then the simulations are executed by calling a fortran subroutine.
+    # The main parameters that may need to be touched inside the fortran routine are the synpatic weights of Ca3 and EC3 inputs geefk and gcontk, that
+    # determine the ratio of input variances
     from src.network_simulations import beta, matrices, conversion
     Nexc = 4000
     Ninh = 1000
@@ -26,7 +29,9 @@ def main_network_simulations(BASE_DIR):
     frac_tun_ec = 0.
     cont_spars = 0.5  # ec3 sparseness
     nlaps = 20  # number of laps on the track for each session
-    ttot = 7.*nlaps*8*1000  # total simulation time
+    # ttot is the total simulation time: 7 seconds per each lap, nlaps, 8 session, 1000 to convert in ms
+    ttot = 7.*nlaps*8*1000
+    # length_ts is the maximum number of spikes for each ca1 excitatory cell. (i.e. we assume maximum rate of 100Hz). It determines the size of the output matrix
     length_ts = int(100*ttot/1000)
     Nff_act = int(ca3_spars*Nff)
     Ncontext_act = int(cont_spars*Ncontext)
@@ -48,6 +53,7 @@ def main_network_simulations(BASE_DIR):
             nonspatial_matrix)
     np.save(BASE_DIR + '/data/outputs_simulation/matr_space_inh.npy', matr_space_inh)
     # network simulation
+    # returns matrices with spiking times of CA1 E-I cells
     output_matrix, output_matrix_inh = beta.network_sim(ttot, nlaps, length_ts, Nff_act, spatial_neurons, spatial_neurons_ec, Ncontext_act,
                                                         spatial_matrix, nonspatial_matrix, aei, aii, aie, matr_cont_inh, matr_space_inh, BASE_DIR,
                                                         Nexc, Nff, Ncontext, Ninh)

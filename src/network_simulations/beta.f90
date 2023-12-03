@@ -1,6 +1,7 @@
 subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neurons_ec,&
     &Ncontext_act,spatial_matrix,nonspatial_matrix,aei,aii,aie,matr_cont_inh,ceffinh,base_dir,Nexc,Nff,Ncontext,Ninh,&
     &output_matrix,output_matrix_inh)
+	!!! this routine is the main function that execute the network simulations. Main parameters and connectivity matrices are given as input from the python wrapper. 
     implicit none
     INTEGER, PARAMETER :: DP = SELECTED_REAL_KIND(14)
     real(kind=DP), intent(in) :: ttot
@@ -49,19 +50,14 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     integer::length_inh,length_exc,looper,kj,n_t_kj,nsess=0,it_spat
     CHARACTER(len=32) :: file_spat,file_nonspat
     integer::neur_loc_cont,spike_bin,spike_exc
-    real,dimension(length_ts,Nexc),intent(out) :: output_matrix
-    real,dimension(2*length_ts,Ninh),intent(out) :: output_matrix_inh
+    real,dimension(length_ts,Nexc),intent(out) :: output_matrix	!output matrix containing spiking times of each ca1 E cell 
+    real,dimension(2*length_ts,Ninh),intent(out) :: output_matrix_inh !!output matrix containing spiking times of each ca1 I cell
     integer,dimension(Nexc) :: dk
     integer,dimension(Ninh) :: dinh
     integer,dimension(20) :: selected_cells,selected_cells_inh
     
     !call init_random_seed()
     
-    !Nff_act=nint(ca3_spars*Nff)
-    !Ncontext_act=nint(cont_spars*Ncontext)
-    !spatial_neurons=nint(frac_tun*Nff_act)
-    !ttot=1120.d3 !!in milliseconds
-    !ttot=5.d3
     dt=0.1d0
     Nstep=nint(ttot/dt)
     !Nstep=10
@@ -71,13 +67,13 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     Kei=500
     Kefinh=500
     meanord=500.d0
-    sigmaord=47.d0
+    !sigmaord=47.d0
     geffk=3.5d0
     geik=2.8d0
     giek=2.d0
     giik=2.d0
     ginhffk=3.d0
-    gcontk=2.52744d0
+    gcontk=2.52744d0 ! the ratio geefk/gcontk determines the ratio of the variances of ca3/ec3 inputs. This value gives a ratio of about 1.4
     gcontinhk=2.d0
     !!carefoul
     geff=geffk/(dble(Kef)**0.5)
@@ -145,12 +141,12 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     kvm=length_track**2/(sigma_bin**2*4.d0*pi**2)
     !nlaps=20 
         !!!non spatial variance calculation
-    sigmaord=20.916500663d0
+    !sigmaord=20.916500663d0
     !!initial conditions!!!
     output_matrix=0.
     output_matrix_inh=0.
-    sigmaord=20.916500663d0
-    !!initial conditions!!!
+    !sigmaord=20.916500663d0
+    !!!!!!!!initial conditions!!!!!!!!!!!!
     do i=1,Nexc
         call random_number(nran)
         vexc(i)=nran*5.d0
@@ -160,6 +156,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
         call random_number(nran)
         vinh(i)=nran*5.d0
     end do
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !!list of neuron indeces!!!
     
     do i=1,Nff
@@ -170,7 +167,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
         neur_ind_cont(i)=i
     end do
 
-    !!cells with saved currents, voltages, etc
+    !!cells of which we save currents, voltages, etc
     do i=1,20
         call random_number(nran)
         selected_cells(i)=nint(nran*Nexc)
@@ -181,7 +178,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
         call random_number(nran)
         selected_cells_inh(i)=nint(nran*Ninh)
     end do 
- 
+	!write to file selected cells
     open(unit=89, file=trim(base_dir) // '/data/outputs_simulation/indices_selected.dat',action='write')
     write(89,*) (selected_cells(j),j=1,20)
     close(89)
@@ -190,14 +187,8 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     write(92,*) (selected_cells_inh(j),j=1,20)
     close(92)
 
-!    !!!!ca3-I connectivity matrix 
-!    open(unit=188,file="ceffinh.dat",action='read')
-!    do tt=1,Ninh
-!        read(188,*) ceffinh(tt,:)
-!    end do 
-!    close(188)
     
-    
+    !! for each ca3 cell, we create a list of the ca1 inhibitory cells to which it is connected
     do i=1,Ninh
         do j=1,Nff
             !call random_number(nran)
@@ -210,15 +201,8 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     end do
         
     
-    
-!   !!!!contextual to inhibitory connectivity matrix 
-!    open(unit=188,file="matr_cont_inh.dat",action='read')
-!    do tt=1,Ninh
-!        read(188,*) matr_cont_inh(tt,:)
-!    end do 
-!    close(188)
-!!    
-    
+	!! for each ec3 cell, we create a list of the ca1 inhibitory cells to which it is connected
+
     do i=1,Ninh
         do j=1,Ncontext
             !call random_number(nran)
@@ -233,7 +217,8 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     
     
 
-    
+	!! same as above, but for e-i connections within ca1
+
 !    
         !!!connectivity matrix aie!!!
     do i=1,Ninh
@@ -274,14 +259,14 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
             end if
         end do 
     end do
-    ratesff=10.d0 !poisson rates
-    !!assign a phase to each input
-    phi=0.d0
-    do i=1,Nff
-        phii=-pi+(i-1)*pi*2.d0/dble(Nff)
-        ratesff(i)=rb+rphi*(1.d0+dcos(phi-phii))
-        ratesff(i)=40.d0
-    end do 
+    ! ratesff=10.d0 !poisson rates
+    !assign a phase to each input
+    ! phi=0.d0
+    ! do i=1,Nff
+        ! phii=-pi+(i-1)*pi*2.d0/dble(Nff)
+        ! ratesff(i)=rb+rphi*(1.d0+dcos(phi-phii))
+        ! ratesff(i)=40.d0
+    ! end do 
 
     open(unit=60,file=trim(base_dir) // '/data/outputs_simulation/membrane_potentials.dat',action='write')
     open(unit=70,file=trim(base_dir) // '/data/outputs_simulation/input_currents_cont_e.dat',action='write')
@@ -296,7 +281,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     Iext=0.d0
     Iextinh=0.d0
     call cpu_time(start)
-    !!!!assing contextual inputs
+    !!!!assing ec3 inputs
     ratescontext(:)=0.d0
     call randsampl(neur_ind_cont,active_context,Ncontext,Ncontext_act)
     ratescontext(active_context)=13.27d0
@@ -330,7 +315,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     end do  
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
-    !!assign the input firing rates
+    !!assign the ca3 firing rates
     ratesff(:)=0.d0
     call randsampl(neur_ind,active_ca3,Nff,Nff_act) !!neurons active but with no tuning
     open(unit=1100,file=trim(base_dir) // '/data/outputs_simulation/rates_ca3_one_dir.dat',action='write')
@@ -346,7 +331,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
     close(1110)
     
     
-    ratesff(active_ca3)=13.27d0
+    ratesff(active_ca3)=13.27d0 !this value is the average rate that a tuned cell has over all positions
     open(unit=868,file=trim(base_dir) // '/data/outputs_simulation/input_phase.dat',action='write')
     do nl=1,spatial_neurons
         !call random_number(nran)
@@ -361,26 +346,28 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
                 is_spatial(nl)=.True.
         end if
     end do  
-    
+    ! main for loop of the simulation
     do i=1,Nstep
         call cpu_time(starttot)
         pos_x=-length_track/2.d0+mod(velocity_x*i*dt,length_track)
         phi=2.d0*pi*pos_x/(length_track)
         
         !spikes_ff=0
+		! decay of synaptic currents
         synexc=synexc-synexc*dt/taus
         synexcinh=synexcinh-synexcinh*dt/taus
         synexccont=synexccont-synexccont*dt/taus
         synexccontinh=synexccontinh-synexccontinh*dt/taus
         it_spat=1
         do nl=1,Nff
+			! tuned ca3 cells have spatially dependent firing rate
             if (is_spatial(nl)) then
                 phii=phivector(it_spat)
                 x_i=phii*length_track/(2.d0*pi)
                 ratesff(nl)=max_rate*dexp(kvm*dcos(phi-phii))/(dexp(kvm))+rb
                 it_spat=it_spat+1
             end if 
-
+			! spiking condition of ca3 cells
             call random_number(nran)
             if (ratesff(nl)*dt/(1000.d0)>=nran) then 
                 do nz=1,ncount(nl)-1
@@ -398,17 +385,18 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
                 end do
             end if
         end do
-        
+      
         it_spat=1
         do nl=1,Ncontext_act
             neur_loc_cont=active_context(nl)
-
+			! tuned ec3 cells have spatially dependent firing rate
             if (is_spatial_ec(neur_loc_cont)) then 
                 phii=phivector_ec(it_spat)
                 x_i=phii*length_track/(2.d0*pi)
                 ratescontext(neur_loc_cont)=max_rate*dexp(kvm*dcos(phi-phii))/(dexp(kvm))+rb
                 it_spat=it_spat+1
             end if 
+			! spiking condition of ec3 cells
             call random_number(nran)
             if (ratescontext(neur_loc_cont)*dt/(1000.d0)>=nran) then 
                 do nz=1,ncountcont(neur_loc_cont)-1
@@ -426,18 +414,17 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
                
             end if
         end do
-     
-!!the degree of each neuron is a wigthed sum of the previous degree and the new one!!!! 
+		! each new session, we update the connectivity matrices !
         if (mod(i-1,nlaps*nint(period/dt))==0 .and. i*dt<1120.d3) then
             nsess=nsess+1
             ncountcont=1
-
+			! update of ca3-ca1 and ec3-ca1 connectivities
             ceff=spatial_matrix(Nexc*(nsess-1)+1:Nexc*nsess,:)
             matr_cont=nonspatial_matrix(Nexc*(nsess-1)+1:Nexc*nsess,:)
             
             
 
-            
+            ! lists of postsynaptic cells for each ec3 cell 
             do tt=1,Ncontext
                 length_exc=sum(matr_cont(:,tt))
                 length_inh=sum(matr_cont_inh(:,tt))
@@ -460,8 +447,7 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
               
             end do 
             
-            
-            !!!!!postsyn spatial!!!!
+			! lists of postsynaptic cells for each ca3 cell 
             n_t_kj=0
             do tt=1,Nff
                 length_exc=sum(ceff(:,tt))
@@ -479,13 +465,9 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
               
             end do 
             
-            
-
-    
-        
         end if
         
-        
+        !! update of ca1 excitatory cells 
         syninhe_old=syninhe
         syninhe=syninhe-syninhe*dt/taus
         spike_exc=0
@@ -513,8 +495,8 @@ subroutine network_sim(ttot,nlaps,length_ts,Nff_act,spatial_neurons,spatial_neur
                 end do 
             end if 
         end do
-        !!firing rate!!!!
         
+        !! update of ca1 inhibitory cells 
 
         syneinh_old=syneinh
         syneinh=syneinh-syneinh*dt/tausinh

@@ -12,10 +12,10 @@ This is the current project structure:
 
 ## Spiking network simulation
 Code was tested in a Linux environment. 
-Apart from the environment requirements given in requirements.txt, a gfortran compiler should be installed in the machine (gfortran version 7.5.0 for example).
+On top of the requirements given in requirements.txt, a gfortran compiler should be installed in the machine (gfortran version 7.5.0 for example).
 The spiking network simulations code is written in a Fortran routine (beta.f90) which is wrapped in a Python script (main_network_simulations.py). 
 To execute a run, it is sufficient to set the simulations parameters in _main_network_simulations.py_, and then run the script from a terminal (with the environment with all necessary requirements activated),
-for example bu running: 
+for example by running: 
 ```console
 (my_conda_env) foo@bar:~$ python3 main_network_simulations.py
 ```

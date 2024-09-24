@@ -20,4 +20,3 @@ for example by running:
 (my_conda_env) foo@bar:~$ python3 main_network_simulations.py
 ```
 The output data is saved in the _data_ folder. 
-As soon as possibile, I will add also the code to analyse and plot the results of the simulations, and run simulations of the statistical model. 
